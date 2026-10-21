@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="mn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#176b4d">
+<meta name="description" content="Eco Travel Mongolia — аяллын тээврийн нүүрстөрөгчийн ялгарлын тооцоолуур">
+<title>Eco Travel Mongolia | Ногоон аяллын тооцоолуур</title>
+<style>
+:root{--green:#176b4d;--green2:#21845f;--mint:#e9f7ef;--ink:#18332a;--muted:#62746b;--line:#dce9e1;--white:#fff;--bg:#f5faf6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+header{background:linear-gradient(135deg,#10543c,#21845f);color:#fff;padding:28px 18px 34px}
+.wrap{max-width:920px;margin:auto}.brand{display:flex;gap:12px;align-items:center}.leaf{width:44px;height:44px;border-radius:14px;background:#ffffff22;display:grid;place-items:center;font-size:25px}
+h1{font-size:clamp(25px,5vw,38px);line-height:1.15;margin:17px 0 8px}header p{margin:0;max-width:650px;color:#e0f4e8}
+main{padding:22px 16px 40px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 7px 22px #153d2610}
+h2{font-size:19px;margin:0 0 16px}.field{margin-bottom:15px}label{display:block;font-size:14px;font-weight:650;margin-bottom:6px}input,select{width:100%;padding:12px 13px;border:1px solid #cbdcd1;border-radius:11px;font:inherit;background:#fff;color:var(--ink)}input:focus,select:focus{outline:3px solid #bce7ce;border-color:var(--green)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{font-size:12px;color:var(--muted);margin-top:5px}
+button{border:0;border-radius:12px;background:var(--green);color:#fff;padding:13px 18px;font:inherit;font-weight:750;cursor:pointer;width:100%}button:hover{background:#10543c}
+.result{background:var(--mint);border:1px solid #c9ead5;border-radius:16px;padding:19px;margin-top:16px}.result small{color:#3b6a50;font-weight:700}.number{font-size:clamp(32px,7vw,44px);font-weight:850;letter-spacing:-1.4px;color:#12583e;line-height:1.2;margin:5px 0}.unit{font-size:14px;font-weight:600;letter-spacing:0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px}.stat{background:#fff;border:1px solid #d5eadc;padding:12px;border-radius:12px}.stat b{display:block;font-size:17px}.stat span{font-size:12px;color:var(--muted)}
+.tip{margin-top:14px;padding:13px;border-left:4px solid var(--green2);background:#fff;border-radius:0 10px 10px 0;font-size:14px}
+footer{padding:0 16px 28px;color:var(--muted);font-size:12px}.notice{font-size:12px;color:var(--muted);margin-top:14px}.pill{display:inline-block;border-radius:99px;background:#ffffff20;padding:4px 10px;font-size:12px;font-weight:700}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.card{padding:18px}.two{gap:9px}header{padding-top:22px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand"><div class="leaf">🌿</div><div><strong> ECO TRAVEL MONGOLIA</strong><div class="pill">Ногоон аяллын тооцоолуур</div></div></div>
+  <h1>Таны аялал байгальд хэрхэн нөлөөлөх вэ?</h1>
+  <p>Аяллын зай, тээврийн хэрэгсэл, зорчигчдын тоогоо оруулаад нэг хүнд ногдох тооцоолсон хүлэмжийн хийн ялгарлыг хараарай.</p>
+</div></header>
+<main class="wrap">
+<div class="grid">
+<section class="card">
+<h2>✈️ Аяллын мэдээлэл</h2>
+<form id="calcForm">
+<div class="two">
+<div class="field"><label for="origin">Хаанаас</label><input id="origin" placeholder="Жишээ: Улаанбаатар" value="Улаанбаатар" maxlength="80"></div>
+<div class="field"><label for="destination">Хаашаа</label><input id="destination" placeholder="Жишээ: Өмнөговь" value="Өмнөговь" maxlength="80"></div>
+</div>
+<div class="field"><label for="distance">Нэг талын зай (км)</label><input id="distance" type="number" min="1" max="30000" step="1" value="550" required><div class="hint">Маршрутын бодит зайг оруулна. Сайт зайг автоматаар тодорхойлохгүй.</div></div>
+<div class="field"><label for="mode">Тээврийн хэрэгсэл</label><select id="mode">
+<option value="plane">Онгоц</option><option value="car">Суудлын автомашин</option><option value="bus">Автобус</option><option value="train">Галт тэрэг</option>
+</select></div>
+<div class="two">
+<div class="field"><label for="people">Зорчигчдын тоо</label><input id="people" type="number" min="1" max="1000" value="1" required></div>
+<div class="field"><label for="trip">Аяллын чиглэл</label><select id="trip"><option value="1">Нэг талдаа</option><option value="2" selected>Хоёр талдаа</option></select></div>
+</div>
+<div class="field" id="carOccupancyWrap" hidden><label for="carOccupancy">Машинд зорчих нийт хүний тоо</label><input id="carOccupancy" type="number" min="1" max="9" value="2"></div>
+<button type="submit">Ялгарлыг тооцоолох</button>
+</form>
+<div class="notice">Демо тооцоолуур • Үр дүн нь ойролцоо тооцоо бөгөөд албан ёсны тайлан, баталгаажуулалт биш.</div>
+</section>
+<section class="card" aria-live="polite">
+<h2>🌱 Таны тооцооны үр дүн</h2>
+<div class="result">
+<small>Нэг хүнд ногдох аяллын ялгарал</small>
+<div class="number" id="perPerson">— <span class="unit">кг CO₂e</span></div>
+<div id="routeLabel">Маршрутаа тооцоолоорой</div>
+<div class="stats">
+<div class="stat"><b id="total">—</b><span>Нийт ялгарал · кг CO₂e</span></div>
+<div class="stat"><b id="tonnes">—</b><span>Нийт ялгарал · тонн CO₂e</span></div>
+</div>
+</div>
+<div class="tip" id="tip">Тээврийн хэрэгсэл, зай, зорчигчдын мэдээллээ оруулаад тооцоолоорой.</div>
+<div class="notice"><strong>CO₂e</strong> гэдэг нь нүүрсхүчлийн хий болон бусад хүлэмжийн хийн нөлөөг CO₂-той дүйцүүлэн илэрхийлсэн хэмжүүр юм.</div>
+</section>
+</div>
+<section class="card" style="margin-top:18px">
+<h2>📘 Тооцоолол хэрхэн хийгддэг вэ?</h2>
+<p style="margin:0 0 10px">Тооцооны ерөнхий зарчим: <strong>зай × ялгарлын коэффициент × аяллын чиглэлийн үржүүлэгч</strong>. Нэг хүнд ногдох дүнг зорчигчдын тоо болон тээврийн хэрэгслийн төрлөөс хамааруулан тооцно.</p>
+<p style="margin:0">Энэ демо хувилбарын коэффициентүүд нь зөвхөн үзүүлэнгийн зориулалттай ойролцоо утгууд. Бодит хэрэглээнд ашиглахаас өмнө сонгосон аргачлал, тээврийн хэрэгслийн ангилал, дүүргэлт болон найдвартай эх сурвалжаар баталгаажуулж шинэчлэх шаардлагатай.</p>
+</section>
+</main>
+<footer class="wrap">Eco Travel Mongolia · Ногоон аяллын боловсролын демо төсөл</footer>
+<script>
+/* Үзүүлэнгийн ойролцоо коэффициент: кг CO2e / зорчигч-км.
+   Албан ёсны тайлан гаргахад ашиглахын өмнө итгэмжлэгдсэн эх сурвалжаар баталгаажуулна. */
+const factors = { plane: 0.255, car: 0.171, bus: 0.105, train: 0.041 };
+const names = { plane: "Онгоц", car: "Суудлын автомашин", bus: "Автобус", train: "Галт тэрэг" };
+const form = document.getElementById("calcForm");
+const mode = document.getElementById("mode");
+const occupancyWrap = document.getElementById("carOccupancyWrap");
+mode.addEventListener("change", () => { occupancyWrap.hidden = mode.value !== "car"; });
+function fmt(n){return n.toLocaleString("mn-MN",{maximumFractionDigits:2,minimumFractionDigits:0});}
+function calculate(e){
+ if(e)e.preventDefault();
+ const distance=Number(document.getElementById("distance").value);
+ const people=Number(document.getElementById("people").value);
+ const trips=Number(document.getElementById("trip").value);
+ const type=mode.value;
+ if(!Number.isFinite(distance)||distance<=0||distance>30000||!Number.isFinite(people)||people<1){alert("Зай болон зорчигчдын тоог зөв оруулна уу.");return;}
+ const roundTripKm=distance*trips;
+ let perPerson=roundTripKm*factors[type];
+ if(type==="car"){
+   const occupants=Math.max(1,Math.min(9,Number(document.getElementById("carOccupancy").value)||1));
+   perPerson=roundTripKm*factors.car/occupants;
+ }
+ const total=perPerson*(type==="car"?people:people);
+ document.getElementById("perPerson").innerHTML=fmt(perPerson)+' <span class="unit">кг CO₂e</span>';
+ document.getElementById("total").textContent=fmt(total);
+ document.getElementById("tonnes").textContent=fmt(total/1000);
+ const from=document.getElementById("origin").value.trim()||"Эхлэх цэг";
+ const to=document.getElementById("destination").value.trim()||"Очих цэг";
+ document.getElementById("routeLabel").textContent=`${from} → ${to} · ${fmt(roundTripKm)} км · ${names[type]}`;
+ const alternatives={plane:"Автобус эсвэл галт тэрэгний боломжийг харьцуулж үзээрэй.",car:"Нэг машинаар хамт зорчих хүнээ нэмэх нь нэг хүнд ногдох ялгарлыг бууруулж болно.",bus:"Нийтийн тээврээр зорчих нь олон тохиолдолд нэг хүнд ногдох ялгарлыг бууруулах боломжтой.",train:"Галт тэрэгний хүртээмжтэй чиглэл байвал ялгарлыг харьцуулан үзээрэй."};
+ document.getElementById("tip").textContent=alternatives[type]+" Энэ нь зөвхөн тооцооны коэффициентэд суурилсан харьцуулалт юм.";
+}
+form.addEventListener("submit",calculate);
+calculate();
+</script>
+</body>
+</html>
