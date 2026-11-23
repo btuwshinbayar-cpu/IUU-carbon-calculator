@@ -38,7 +38,7 @@ footer{padding:0 16px 28px;color:var(--muted);font-size:12px}.notice{font-size:1
 <div class="field"><label for="origin">Хаанаас</label><select id="origin"></select></div>
 <div class="field"><label for="destination">Хаашаа</label><select id="destination"></select></div>
 </div>
-<div class="field"><label for="distance">Нэг талын зай (км)</label><input id="distance" type="number" min="1" max="30000" step="1" value="550" required><div class="hint">Маршрутын бодит зайг оруулна. Сайт зайг автоматаар тодорхойлохгүй.</div></div>
+<div class="field"><label for="distance">Нэг талын зай (км)</label><input id="distance" type="number" min="1" max="30000" step="0.1" placeholder="Маршрут тооцоолж байна..." readonly required><div class="hint" id="distanceStatus">Эхлэх болон очих газрыг сонгоход авто замын зайг автоматаар тооцно.</div></div>
 <div class="field"><label for="mode">Тээврийн хэрэгсэл</label><select id="mode">
 <option value="plane">Онгоц</option><option value="car">Суудлын автомашин</option><option value="bus">Автобус</option><option value="train">Галт тэрэг</option>
 </select></div>
@@ -77,6 +77,33 @@ footer{padding:0 16px 28px;color:var(--muted);font-size:12px}.notice{font-size:1
 const factors = { plane: 0.255, car: 0.171, bus: 0.105, train: 0.041 };
 const names = { plane: "Онгоц", car: "Суудлын автомашин", bus: "Автобус", train: "Галт тэрэг" };
 const locations = ["Улаанбаатар хот","Архангай","Баян-Өлгий","Баянхонгор","Булган","Говь-Алтай","Говьсүмбэр","Дархан-Уул","Дорноговь","Дорнод","Дундговь","Завхан","Орхон","Өвөрхангай","Өмнөговь","Сүхбаатар","Сэлэнгэ","Төв","Увс","Ховд","Хөвсгөл","Хэнтий"];
+
+// Аймаг, хотын төвүүдийн ойролцоо координат.
+// Зайг OSRM авто замын маршрутын үйлчилгээгээр тооцно.
+const coordinates = {
+  "Улаанбаатар хот":[106.917,47.918],
+  "Архангай":[101.454,47.476],
+  "Баян-Өлгий":[89.967,48.968],
+  "Баянхонгор":[100.718,46.194],
+  "Булган":[103.534,48.812],
+  "Говь-Алтай":[96.258,46.373],
+  "Говьсүмбэр":[108.569,46.360],
+  "Дархан-Уул":[105.922,49.486],
+  "Дорноговь":[110.116,43.573],
+  "Дорнод":[114.530,48.076],
+  "Дундговь":[106.270,45.762],
+  "Завхан":[96.844,47.741],
+  "Орхон":[104.044,49.027],
+  "Өвөрхангай":[102.774,46.263],
+  "Өмнөговь":[106.270,43.570],
+  "Сүхбаатар":[113.584,46.680],
+  "Сэлэнгэ":[106.206,50.231],
+  "Төв":[105.955,47.706],
+  "Увс":[91.641,49.981],
+  "Ховд":[91.641,48.005],
+  "Хөвсгөл":[100.163,49.634],
+  "Хэнтий":[109.136,47.319]
+};
 const origin = document.getElementById("origin");
 const destination = document.getElementById("destination");
 function fillLocations(select, defaultValue) {
@@ -93,16 +120,56 @@ fillLocations(destination, "Өмнөговь");
 const form = document.getElementById("calcForm");
 const mode = document.getElementById("mode");
 const occupancyWrap = document.getElementById("carOccupancyWrap");
+const distanceInput = document.getElementById("distance");
+const distanceStatus = document.getElementById("distanceStatus");
+let routeReady = false;
+let routeRequest = 0;
+
 mode.addEventListener("change", () => { occupancyWrap.hidden = mode.value !== "car"; });
 function fmt(n){return n.toLocaleString("mn-MN",{maximumFractionDigits:2,minimumFractionDigits:0});}
+
+// Сонгосон хоёр төвийн хоорондох авто замын зайг автоматаар авна.
+async function updateDistance(){
+  const requestId = ++routeRequest;
+  routeReady = false;
+  distanceInput.value = "";
+  if(origin.value === destination.value){
+    distanceStatus.textContent = "Эхлэх болон очих газар өөр байх ёстой.";
+    return;
+  }
+  distanceStatus.textContent = "Авто замын зайг тооцоолж байна…";
+  try {
+    const from = coordinates[origin.value];
+    const to = coordinates[destination.value];
+    const url = `https://router.project-osrm.org/route/v1/driving/${from[0]},${from[1]};${to[0]},${to[1]}?overview=false`;
+    const response = await fetch(url);
+    if(!response.ok) throw new Error("Маршрутын үйлчилгээ хариу өгсөнгүй.");
+    const data = await response.json();
+    if(requestId !== routeRequest) return;
+    if(data.code !== "Ok" || !data.routes?.length) throw new Error("Энэ чиглэлд авто замын маршрут олдсонгүй.");
+    const km = data.routes[0].distance / 1000;
+    distanceInput.value = km.toFixed(1);
+    distanceStatus.textContent = `Автоматаар тооцсон авто замын зай: ${fmt(km)} км. Аймаг, хотын төвөөс төв хүртэлх ойролцоо маршрут.`;
+    routeReady = true;
+    calculate();
+  } catch(error) {
+    if(requestId !== routeRequest) return;
+    distanceStatus.textContent = "Зайг автоматаар авахад алдаа гарлаа. Интернэт холболтоо шалгаад дахин сонгоно уу.";
+    document.getElementById("routeLabel").textContent = "Маршрутын зай тодорхойгүй байна";
+  }
+}
+
 function calculate(e){
  if(e)e.preventDefault();
- const distance=Number(document.getElementById("distance").value);
+ const distance=Number(distanceInput.value);
  const people=Number(document.getElementById("people").value);
  const trips=Number(document.getElementById("trip").value);
  const type=mode.value;
- if(origin.value===destination.value){alert("Эхлэх болон очих газар өөр байх ёстой.");return;}
- if(!Number.isFinite(distance)||distance<=0||distance>30000||!Number.isFinite(people)||people<1){alert("Зай болон зорчигчдын тоог зөв оруулна уу.");return;}
+ if(origin.value===destination.value){return;}
+ if(!routeReady || !Number.isFinite(distance)||distance<=0||!Number.isFinite(people)||people<1){
+   document.getElementById("routeLabel").textContent = "Маршрутын зай тооцогдсоны дараа үр дүн гарна.";
+   return;
+ }
  const tripDistance=distance*trips;
  let perPerson=tripDistance*factors[type];
  if(type==="car"){
@@ -117,8 +184,13 @@ function calculate(e){
  const tips={plane:"Автобус эсвэл галт тэрэгний боломжийг харьцуулж үзээрэй.",car:"Хамт зорчих хүнээ нэмэх нь нэг хүнд ногдох ялгарлыг бууруулж болно.",bus:"Нийтийн тээврээр зорчих нь олон тохиолдолд нэг хүнд ногдох ялгарлыг бууруулах боломжтой.",train:"Галт тэрэгний боломжтой чиглэл байвал ялгарлыг харьцуулж үзээрэй."};
  document.getElementById("tip").textContent=tips[type]+" Энэ нь ойролцоо коэффициентэд суурилсан тооцоо юм.";
 }
+origin.addEventListener("change", updateDistance);
+destination.addEventListener("change", updateDistance);
+document.getElementById("people").addEventListener("input", calculate);
+document.getElementById("trip").addEventListener("change", calculate);
+document.getElementById("carOccupancy").addEventListener("input", calculate);
 form.addEventListener("submit",calculate);
-calculate();
+updateDistance();
 </script>
 </body>
 </html>
