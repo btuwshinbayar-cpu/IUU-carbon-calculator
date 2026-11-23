@@ -35,8 +35,8 @@ footer{padding:0 16px 28px;color:var(--muted);font-size:12px}.notice{font-size:1
 <h2>✈️ Аяллын мэдээлэл</h2>
 <form id="calcForm">
 <div class="two">
-<div class="field"><label for="origin">Хаанаас</label><input id="origin" placeholder="Жишээ: Улаанбаатар" value="Улаанбаатар" maxlength="80"></div>
-<div class="field"><label for="destination">Хаашаа</label><input id="destination" placeholder="Жишээ: Өмнөговь" value="Өмнөговь" maxlength="80"></div>
+<div class="field"><label for="origin">Хаанаас</label><select id="origin"></select></div>
+<div class="field"><label for="destination">Хаашаа</label><select id="destination"></select></div>
 </div>
 <div class="field"><label for="distance">Нэг талын зай (км)</label><input id="distance" type="number" min="1" max="30000" step="1" value="550" required><div class="hint">Маршрутын бодит зайг оруулна. Сайт зайг автоматаар тодорхойлохгүй.</div></div>
 <div class="field"><label for="mode">Тээврийн хэрэгсэл</label><select id="mode">
@@ -61,7 +61,6 @@ footer{padding:0 16px 28px;color:var(--muted);font-size:12px}.notice{font-size:1
 <div class="stat"><b id="total">—</b><span>Нийт ялгарал · кг CO₂e</span></div>
 <div class="stat"><b id="tonnes">—</b><span>Нийт ялгарал · тонн CO₂e</span></div>
 </div>
-</div>
 <div class="tip" id="tip">Тээврийн хэрэгсэл, зай, зорчигчдын мэдээллээ оруулаад тооцоолоорой.</div>
 <div class="notice"><strong>CO₂e</strong> гэдэг нь нүүрсхүчлийн хий болон бусад хүлэмжийн хийн нөлөөг CO₂-той дүйцүүлэн илэрхийлсэн хэмжүүр юм.</div>
 </section>
@@ -74,10 +73,23 @@ footer{padding:0 16px 28px;color:var(--muted);font-size:12px}.notice{font-size:1
 </main>
 <footer class="wrap">Eco Travel Mongolia · Ногоон аяллын боловсролын демо төсөл</footer>
 <script>
-/* Үзүүлэнгийн ойролцоо коэффициент: кг CO2e / зорчигч-км.
-   Албан ёсны тайлан гаргахад ашиглахын өмнө итгэмжлэгдсэн эх сурвалжаар баталгаажуулна. */
+/* Демо коэффициентүүд: албан ёсны тайлангийн өмнө эх сурвалжаар баталгаажуулна. */
 const factors = { plane: 0.255, car: 0.171, bus: 0.105, train: 0.041 };
 const names = { plane: "Онгоц", car: "Суудлын автомашин", bus: "Автобус", train: "Галт тэрэг" };
+const locations = ["Улаанбаатар хот","Архангай","Баян-Өлгий","Баянхонгор","Булган","Говь-Алтай","Говьсүмбэр","Дархан-Уул","Дорноговь","Дорнод","Дундговь","Завхан","Орхон","Өвөрхангай","Өмнөговь","Сүхбаатар","Сэлэнгэ","Төв","Увс","Ховд","Хөвсгөл","Хэнтий"];
+const origin = document.getElementById("origin");
+const destination = document.getElementById("destination");
+function fillLocations(select, defaultValue) {
+  locations.forEach(name => {
+    const option = document.createElement("option");
+    option.value = name; option.textContent = name;
+    if (name === defaultValue) option.selected = true;
+    select.appendChild(option);
+  });
+}
+fillLocations(origin, "Улаанбаатар хот");
+fillLocations(destination, "Өмнөговь");
+
 const form = document.getElementById("calcForm");
 const mode = document.getElementById("mode");
 const occupancyWrap = document.getElementById("carOccupancyWrap");
@@ -89,22 +101,21 @@ function calculate(e){
  const people=Number(document.getElementById("people").value);
  const trips=Number(document.getElementById("trip").value);
  const type=mode.value;
+ if(origin.value===destination.value){alert("Эхлэх болон очих газар өөр байх ёстой.");return;}
  if(!Number.isFinite(distance)||distance<=0||distance>30000||!Number.isFinite(people)||people<1){alert("Зай болон зорчигчдын тоог зөв оруулна уу.");return;}
- const roundTripKm=distance*trips;
- let perPerson=roundTripKm*factors[type];
+ const tripDistance=distance*trips;
+ let perPerson=tripDistance*factors[type];
  if(type==="car"){
    const occupants=Math.max(1,Math.min(9,Number(document.getElementById("carOccupancy").value)||1));
-   perPerson=roundTripKm*factors.car/occupants;
+   perPerson=tripDistance*factors.car/occupants;
  }
- const total=perPerson*(type==="car"?people:people);
+ const total=perPerson*people;
  document.getElementById("perPerson").innerHTML=fmt(perPerson)+' <span class="unit">кг CO₂e</span>';
  document.getElementById("total").textContent=fmt(total);
  document.getElementById("tonnes").textContent=fmt(total/1000);
- const from=document.getElementById("origin").value.trim()||"Эхлэх цэг";
- const to=document.getElementById("destination").value.trim()||"Очих цэг";
- document.getElementById("routeLabel").textContent=`${from} → ${to} · ${fmt(roundTripKm)} км · ${names[type]}`;
- const alternatives={plane:"Автобус эсвэл галт тэрэгний боломжийг харьцуулж үзээрэй.",car:"Нэг машинаар хамт зорчих хүнээ нэмэх нь нэг хүнд ногдох ялгарлыг бууруулж болно.",bus:"Нийтийн тээврээр зорчих нь олон тохиолдолд нэг хүнд ногдох ялгарлыг бууруулах боломжтой.",train:"Галт тэрэгний хүртээмжтэй чиглэл байвал ялгарлыг харьцуулан үзээрэй."};
- document.getElementById("tip").textContent=alternatives[type]+" Энэ нь зөвхөн тооцооны коэффициентэд суурилсан харьцуулалт юм.";
+ document.getElementById("routeLabel").textContent=`${origin.value} → ${destination.value} · ${fmt(tripDistance)} км · ${names[type]}`;
+ const tips={plane:"Автобус эсвэл галт тэрэгний боломжийг харьцуулж үзээрэй.",car:"Хамт зорчих хүнээ нэмэх нь нэг хүнд ногдох ялгарлыг бууруулж болно.",bus:"Нийтийн тээврээр зорчих нь олон тохиолдолд нэг хүнд ногдох ялгарлыг бууруулах боломжтой.",train:"Галт тэрэгний боломжтой чиглэл байвал ялгарлыг харьцуулж үзээрэй."};
+ document.getElementById("tip").textContent=tips[type]+" Энэ нь ойролцоо коэффициентэд суурилсан тооцоо юм.";
 }
 form.addEventListener("submit",calculate);
 calculate();
